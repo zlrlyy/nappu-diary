@@ -46,5 +46,9 @@
     "@types/uuid": "^10.0.0",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "npm": ">=11.9.0",
+    "node": ">=25.6.1"
+  }
 }
