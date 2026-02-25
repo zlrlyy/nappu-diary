@@ -9,6 +9,7 @@ import {
   HelperText,
 } from 'react-native-paper'
 import { CreateBabyInput, UpdateBabyInput, Baby } from '@/types'
+import { DateTimePickerInput } from '@/components/common/DateTimePicker'
 
 interface BabyFormProps {
   baby?: Baby
@@ -32,7 +33,7 @@ export function BabyForm({ baby, onSubmit, onCancel, isLoading }: BabyFormProps)
   const theme = useTheme()
   const [formData, setFormData] = useState<FormData>({
     name: baby?.name || '',
-    birthDate: baby?.birthDate?.split('T')[0] || '',
+    birthDate: baby?.birthDate || new Date().toISOString(),
     gender: baby?.gender,
   })
   const [errors, setErrors] = useState<FormErrors>({})
@@ -47,14 +48,9 @@ export function BabyForm({ baby, onSubmit, onCancel, isLoading }: BabyFormProps)
     if (!formData.birthDate) {
       newErrors.birthDate = '请选择出生日期'
     } else {
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-      if (!dateRegex.test(formData.birthDate)) {
-        newErrors.birthDate = '日期格式应为 YYYY-MM-DD'
-      } else {
-        const date = new Date(formData.birthDate)
-        if (isNaN(date.getTime()) || date > new Date()) {
-          newErrors.birthDate = '请输入有效的出生日期'
-        }
+      const date = new Date(formData.birthDate)
+      if (isNaN(date.getTime()) || date > new Date()) {
+        newErrors.birthDate = '请输入有效的出生日期'
       }
     }
 
@@ -67,7 +63,7 @@ export function BabyForm({ baby, onSubmit, onCancel, isLoading }: BabyFormProps)
 
     const submitData: CreateBabyInput | UpdateBabyInput = {
       name: formData.name.trim(),
-      birthDate: new Date(formData.birthDate).toISOString(),
+      birthDate: formData.birthDate,
       gender: formData.gender,
     }
 
@@ -86,13 +82,17 @@ export function BabyForm({ baby, onSubmit, onCancel, isLoading }: BabyFormProps)
       />
       {errors.name && <HelperText type="error">{errors.name}</HelperText>}
 
-      <TextInput
-        label="出生日期 (YYYY-MM-DD)"
+      <DateTimePickerInput
+        label="出生日期"
         value={formData.birthDate}
-        onChangeText={(text) => setFormData({ ...formData, birthDate: text })}
+        onChange={(isoString) => {
+          setFormData({ ...formData, birthDate: isoString })
+          if (errors.birthDate) {
+            setErrors({ ...errors, birthDate: undefined })
+          }
+        }}
+        mode="date"
         error={!!errors.birthDate}
-        mode="outlined"
-        placeholder="例如: 2024-01-15"
         style={styles.input}
       />
       {errors.birthDate && <HelperText type="error">{errors.birthDate}</HelperText>}

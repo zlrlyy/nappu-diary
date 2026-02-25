@@ -10,6 +10,7 @@ import {
 } from 'react-native-paper'
 import { CreateDiaperInput, UpdateDiaperInput, DiaperRecord, DiaperType, PoopConsistency } from '@/types'
 import { toISOString } from '@/utils/date'
+import { DateTimePickerInput } from '@/components/common/DateTimePicker'
 
 interface DiaperFormProps {
   babyId: string
@@ -125,14 +126,15 @@ export function DiaperForm({ babyId, record, onSubmit, onCancel, isLoading }: Di
         </>
       )}
 
-      <TextInput
+      <DateTimePickerInput
         label="时间"
-        value={new Date(formData.time).toLocaleString('zh-CN')}
-        mode="outlined"
+        value={formData.time}
+        onChange={(isoString) => setFormData({ ...formData, time: isoString })}
+        mode="datetime"
+        error={!!errors.time}
         style={styles.input}
-        editable={false}
-        right={<TextInput.Icon icon="clock" />}
       />
+      {errors.time && <HelperText type="error">{errors.time}</HelperText>}
 
       <TextInput
         label="备注（可选）"

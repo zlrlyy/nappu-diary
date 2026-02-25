@@ -10,6 +10,7 @@ import {
 } from 'react-native-paper'
 import { CreateFeedingInput, UpdateFeedingInput, FeedingRecord, FeedingType, BreastSide } from '@/types'
 import { formatTime, toISOString } from '@/utils/date'
+import { DateTimePickerInput } from '@/components/common/DateTimePicker'
 
 interface FeedingFormProps {
   babyId: string
@@ -102,14 +103,6 @@ export function FeedingForm({ babyId, record, onSubmit, onCancel, isLoading }: F
     onSubmit(submitData)
   }
 
-  const getStartTimeDisplay = () => {
-    try {
-      return formatTime(formData.startTime)
-    } catch {
-      return '选择时间'
-    }
-  }
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text variant="titleSmall" style={styles.label}>
@@ -175,14 +168,15 @@ export function FeedingForm({ babyId, record, onSubmit, onCancel, isLoading }: F
         </>
       )}
 
-      <TextInput
+      <DateTimePickerInput
         label="开始时间"
-        value={getStartTimeDisplay()}
-        mode="outlined"
+        value={formData.startTime}
+        onChange={(isoString) => setFormData({ ...formData, startTime: isoString })}
+        mode="datetime"
+        error={!!errors.startTime}
         style={styles.input}
-        editable={false}
-        right={<TextInput.Icon icon="clock" />}
       />
+      {errors.startTime && <HelperText type="error">{errors.startTime}</HelperText>}
 
       <TextInput
         label="备注（可选）"

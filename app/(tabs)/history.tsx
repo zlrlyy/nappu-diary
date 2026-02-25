@@ -6,6 +6,9 @@ import {
   SegmentedButtons,
   useTheme,
   Divider,
+  Portal,
+  Dialog,
+  Button,
 } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { useBabyStore, useFeedingStore, useDiaperStore } from "@/stores";
@@ -36,8 +39,19 @@ export default function HistoryScreen() {
   // Subscribe to records directly
   const feedingRecords = useFeedingStore((state) => state.records);
   const diaperRecords = useDiaperStore((state) => state.records);
+  const deleteFeedingRecord = useFeedingStore((state) => state.deleteRecord);
+  const deleteDiaperRecord = useDiaperStore((state) => state.deleteRecord);
 
   const [filter, setFilter] = useState<FilterType>("all");
+  const [deleteDialog, setDeleteDialog] = useState<{
+    visible: boolean;
+    recordId: string;
+    recordType: "feeding" | "diaper";
+  }>({
+    visible: false,
+    recordId: "",
+    recordType: "feeding",
+  });
 
   const currentBaby = babies.find((b) => b.id === currentBabyId);
 
@@ -100,6 +114,30 @@ export default function HistoryScreen() {
     router.push("/baby/edit");
   };
 
+  const handleDeleteRequest = (
+    recordId: string,
+    recordType: "feeding" | "diaper"
+  ) => {
+    setDeleteDialog({
+      visible: true,
+      recordId,
+      recordType,
+    });
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteDialog.recordType === "feeding") {
+      deleteFeedingRecord(deleteDialog.recordId);
+    } else {
+      deleteDiaperRecord(deleteDialog.recordId);
+    }
+    setDeleteDialog({ visible: false, recordId: "", recordType: "feeding" });
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialog({ visible: false, recordId: "", recordType: "feeding" });
+  };
+
   const renderRecord = (record: {
     id: string;
     recordType: "feeding" | "diaper";
@@ -110,6 +148,7 @@ export default function HistoryScreen() {
         <FeedingCard
           record={record.data}
           onPress={() => router.push(`/record/feeding?id=${record.id}`)}
+          onDelete={() => handleDeleteRequest(record.id, "feeding")}
         />
       );
     }
@@ -117,6 +156,7 @@ export default function HistoryScreen() {
       <DiaperCard
         record={record.data}
         onPress={() => router.push(`/record/diaper?id=${record.id}`)}
+        onDelete={() => handleDeleteRequest(record.id, "diaper")}
       />
     );
   };
@@ -172,6 +212,21 @@ export default function HistoryScreen() {
           </View>
         }
       />
+
+      <Portal>
+        <Dialog visible={deleteDialog.visible} onDismiss={handleDeleteCancel}>
+          <Dialog.Title>确认删除</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium">确定要删除这条记录吗？此操作无法撤销。</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={handleDeleteCancel}>取消</Button>
+            <Button onPress={handleDeleteConfirm} textColor={theme.colors.error}>
+              删除
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
