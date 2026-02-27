@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { View, StyleSheet, ScrollView, Alert } from 'react-native'
-import { useRouter, Stack } from 'expo-router'
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, ScrollView, Alert } from "react-native";
+import { useRouter, Stack } from "expo-router";
 import {
   Text,
   Card,
@@ -10,93 +10,91 @@ import {
   useTheme,
   Divider,
   List,
-} from 'react-native-paper'
+} from "react-native-paper";
 import {
   requestNotificationPermissions,
   scheduleFeedingReminder,
   cancelFeedingReminder,
   ReminderSettings,
-} from '@/services/notification'
-import { exportAndShare } from '@/services/export'
-import { useBabyStore, useFeedingStore, useDiaperStore } from '@/stores'
+} from "@/services/notification";
+import { exportAndShare } from "@/services/export";
+import { useBabyStore, useFeedingStore, useDiaperStore } from "@/stores";
 
 const DEFAULT_SETTINGS: ReminderSettings = {
   feedingIntervalEnabled: false,
   feedingIntervalMinutes: 120,
-}
+};
 
 export default function SettingsScreen() {
-  const theme = useTheme()
-  const router = useRouter()
+  const theme = useTheme();
+  const router = useRouter();
 
-  const babies = useBabyStore((state) => state.babies)
-  const feedingRecords = useFeedingStore((state) => state.records)
-  const diaperRecords = useDiaperStore((state) => state.records)
+  const babies = useBabyStore((state) => state.babies);
+  const feedingRecords = useFeedingStore((state) => state.records);
+  const diaperRecords = useDiaperStore((state) => state.records);
 
-  const [settings, setSettings] = useState<ReminderSettings>(DEFAULT_SETTINGS)
-  const [isLoading, setIsLoading] = useState(false)
+  const [settings, setSettings] = useState<ReminderSettings>(DEFAULT_SETTINGS);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Load settings from storage
     // For now, using default settings
-  }, [])
+  }, []);
 
   const handleToggleFeedingReminder = async (enabled: boolean) => {
     if (enabled) {
-      const granted = await requestNotificationPermissions()
+      const granted = await requestNotificationPermissions();
       if (!granted) {
-        Alert.alert(
-          '权限不足',
-          '请在系统设置中允许应用发送通知',
-          [{ text: '确定' }]
-        )
-        return
+        Alert.alert("权限不足", "请在系统设置中允许应用发送通知", [
+          { text: "确定" },
+        ]);
+        return;
       }
     } else {
-      await cancelFeedingReminder()
+      await cancelFeedingReminder();
     }
 
     setSettings((prev) => ({
       ...prev,
       feedingIntervalEnabled: enabled,
-    }))
-  }
+    }));
+  };
 
   const handleIntervalChange = (text: string) => {
-    const minutes = parseInt(text, 10)
+    const minutes = parseInt(text, 10);
     if (!isNaN(minutes) && minutes > 0) {
       setSettings((prev) => ({
         ...prev,
         feedingIntervalMinutes: minutes,
-      }))
+      }));
     }
-  }
+  };
 
   const handleExportJson = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await exportAndShare(babies, feedingRecords, diaperRecords, 'json')
+      await exportAndShare(babies, feedingRecords, diaperRecords, "json");
     } catch (error) {
-      Alert.alert('导出失败', '导出数据时发生错误，请重试')
+      Alert.alert("导出失败", "导出数据时发生错误，请重试");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleExportCsv = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await exportAndShare(babies, feedingRecords, diaperRecords, 'csv')
+      await exportAndShare(babies, feedingRecords, diaperRecords, "csv");
     } catch (error) {
-      Alert.alert('导出失败', '导出数据时发生错误，请重试')
+      Alert.alert("导出失败", "导出数据时发生错误，请重试");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Stack.Screen options={{ title: '设置' }} />
+      <Stack.Screen options={{ title: "设置" }} />
 
       <Card style={styles.card}>
         <Card.Content>
@@ -173,7 +171,7 @@ export default function SettingsScreen() {
             description="编辑或删除宝宝信息"
             left={(props) => <List.Icon {...props} icon="account-edit" />}
             right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={() => router.push('/baby/list')}
+            onPress={() => router.push("/baby/list")}
             style={styles.listItem}
           />
         </Card.Content>
@@ -187,7 +185,7 @@ export default function SettingsScreen() {
 
           <List.Item
             title="Nappu Diary"
-            description="版本 1.0.0"
+            description="版本 1.0.3"
             left={(props) => <List.Icon {...props} icon="baby-face" />}
           />
 
@@ -197,7 +195,7 @@ export default function SettingsScreen() {
         </Card.Content>
       </Card>
     </ScrollView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -215,14 +213,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   settingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 8,
   },
   intervalSetting: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 8,
   },
   intervalLabel: {
@@ -237,7 +235,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   exportButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   exportButton: {
@@ -250,4 +248,4 @@ const styles = StyleSheet.create({
   listItem: {
     paddingHorizontal: 0,
   },
-})
+});
