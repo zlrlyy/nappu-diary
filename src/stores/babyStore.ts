@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
 import { Baby, CreateBabyInput, UpdateBabyInput } from '@/types'
-import { getStoredData, setStoredData, STORAGE_KEYS } from '@/services/storage/mmkv'
+import { getStoredData, setStoredData, removeStoredData, STORAGE_KEYS } from '@/services/storage/mmkv'
+import { useFeedingStore } from './feedingStore'
+import { useDiaperStore } from './diaperStore'
 
 interface BabyState {
   babies: Baby[]
@@ -87,21 +89,40 @@ export const useBabyStore = create<BabyState>((set, get) => ({
   },
 
   deleteBaby: async (id: string) => {
-    const state = get()
-    const babies = state.babies.filter((b) => b.id !== id)
-    await setStoredData(STORAGE_KEYS.BABIES, babies)
+    try {
+      const state = get()
 
-    let currentBabyId = state.currentBabyId
-    if (currentBabyId === id) {
-      currentBabyId = babies.length > 0 ? babies[0].id : null
-      if (currentBabyId) {
-        await setStoredData(STORAGE_KEYS.CURRENT_BABY_ID, currentBabyId)
-      } else {
-        await setStoredData(STORAGE_KEYS.CURRENT_BABY_ID, null as any)
+      // Delete associated feeding records
+      const feedingStore = useFeedingStore.getState()
+      const remainingFeedingRecords = feedingStore.records.filter((r) => r.babyId !== id)
+      await setStoredData(STORAGE_KEYS.FEEDING_RECORDS, remainingFeedingRecords)
+      useFeedingStore.setState({ records: remainingFeedingRecords })
+
+      // Delete associated diaper records
+      const diaperStore = useDiaperStore.getState()
+      const remainingDiaperRecords = diaperStore.records.filter((r) => r.babyId !== id)
+      await setStoredData(STORAGE_KEYS.DIAPER_RECORDS, remainingDiaperRecords)
+      useDiaperStore.setState({ records: remainingDiaperRecords })
+
+      // Delete baby
+      const babies = state.babies.filter((b) => b.id !== id)
+      await setStoredData(STORAGE_KEYS.BABIES, babies)
+
+      let currentBabyId = state.currentBabyId
+      if (currentBabyId === id) {
+        currentBabyId = babies.length > 0 ? babies[0].id : null
+        if (currentBabyId) {
+          await setStoredData(STORAGE_KEYS.CURRENT_BABY_ID, currentBabyId)
+        } else {
+          await removeStoredData(STORAGE_KEYS.CURRENT_BABY_ID)
+        }
       }
-    }
 
-    set({ babies, currentBabyId, error: null })
+      set({ babies, currentBabyId, error: null })
+    } catch (error) {
+      set({ error: 'Failed to delete baby' })
+      throw error
+    }
   },
 
   setCurrentBaby: async (id: string) => {

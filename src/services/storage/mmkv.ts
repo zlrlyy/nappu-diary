@@ -18,7 +18,6 @@ export async function getStoredData<T>(key: string): Promise<T | null> {
     }
     return null
   } catch (error) {
-    console.error(`Error reading ${key} from storage:`, error)
     return null
   }
 }
@@ -27,7 +26,6 @@ export async function setStoredData<T>(key: string, data: T): Promise<void> {
   try {
     await AsyncStorage.setItem(key, JSON.stringify(data))
   } catch (error) {
-    console.error(`Error writing ${key} to storage:`, error)
     throw new Error(`Failed to save ${key}`)
   }
 }
@@ -36,7 +34,6 @@ export async function removeStoredData(key: string): Promise<void> {
   try {
     await AsyncStorage.removeItem(key)
   } catch (error) {
-    console.error(`Error removing ${key} from storage:`, error)
     throw new Error(`Failed to remove ${key}`)
   }
 }

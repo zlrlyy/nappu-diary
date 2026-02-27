@@ -165,6 +165,23 @@ export default function SettingsScreen() {
       <Card style={styles.card}>
         <Card.Content>
           <Text variant="titleMedium" style={styles.sectionTitle}>
+            宝宝管理
+          </Text>
+
+          <List.Item
+            title="管理宝宝信息"
+            description="编辑或删除宝宝信息"
+            left={(props) => <List.Icon {...props} icon="account-edit" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={() => router.push('/baby/list')}
+            style={styles.listItem}
+          />
+        </Card.Content>
+      </Card>
+
+      <Card style={styles.card}>
+        <Card.Content>
+          <Text variant="titleMedium" style={styles.sectionTitle}>
             关于
           </Text>
 
@@ -229,5 +246,8 @@ const styles = StyleSheet.create({
   aboutText: {
     opacity: 0.7,
     marginTop: 8,
+  },
+  listItem: {
+    paddingHorizontal: 0,
   },
 })

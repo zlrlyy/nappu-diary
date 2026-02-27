@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { View, StyleSheet, FlatList, Alert } from 'react-native'
 import { useRouter, Stack } from 'expo-router'
-import { Text, Card, IconButton, useTheme, FAB } from 'react-native-paper'
+import { Text, Card, IconButton, useTheme, FAB, Portal, Dialog, Button } from 'react-native-paper'
 import { useBabyStore } from '@/stores'
 import { Baby } from '@/types'
 import { formatDate } from '@/utils/date'
@@ -15,6 +15,11 @@ export default function BabyListScreen() {
   const setCurrentBaby = useBabyStore((state) => state.setCurrentBaby)
   const deleteBaby = useBabyStore((state) => state.deleteBaby)
 
+  const [deleteDialog, setDeleteDialog] = useState<{
+    visible: boolean
+    baby: Baby | null
+  }>({ visible: false, baby: null })
+
   const handleAddBaby = () => {
     router.push('/baby/edit')
   }
@@ -24,18 +29,22 @@ export default function BabyListScreen() {
   }
 
   const handleDeleteBaby = (baby: Baby) => {
-    Alert.alert(
-      '确认删除',
-      `确定要删除 ${baby.name} 的信息吗？相关的所有记录也会被删除。`,
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: () => deleteBaby(baby.id),
-        },
-      ]
-    )
+    setDeleteDialog({ visible: true, baby })
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (deleteDialog.baby) {
+      try {
+        await deleteBaby(deleteDialog.baby.id)
+        setDeleteDialog({ visible: false, baby: null })
+      } catch (error) {
+        Alert.alert('错误', '删除失败，请重试')
+      }
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setDeleteDialog({ visible: false, baby: null })
   }
 
   const handleSelectBaby = (baby: Baby) => {
@@ -115,6 +124,23 @@ export default function BabyListScreen() {
         onPress={handleAddBaby}
         color={theme.colors.onPrimary}
       />
+
+      <Portal>
+        <Dialog visible={deleteDialog.visible} onDismiss={handleDeleteCancel}>
+          <Dialog.Title>确认删除</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium">
+              确定要删除 {deleteDialog.baby?.name} 的信息吗？相关的所有记录也会被删除。
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={handleDeleteCancel}>取消</Button>
+            <Button onPress={handleDeleteConfirm} textColor={theme.colors.error}>
+              删除
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   )
 }

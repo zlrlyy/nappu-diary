@@ -23,13 +23,12 @@ export default function BabyEditScreen() {
     setIsLoading(true)
     try {
       if (existingBaby) {
-        updateBaby(existingBaby.id, data)
+        await updateBaby(existingBaby.id, data)
       } else {
-        addBaby(data as CreateBabyInput)
+        await addBaby(data as CreateBabyInput)
       }
       router.back()
     } catch (error) {
-      console.error('Failed to save baby:', error)
       Alert.alert('错误', '保存失败，请重试')
     } finally {
       setIsLoading(false)
